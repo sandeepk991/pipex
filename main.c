@@ -28,6 +28,7 @@ int main(int ac, char *av[])
         while (read(fd1, &c, 1) > 0)
         {
             write(fd2, &c, 1);
+            //printf("number of lines : %i", )
         }
         close(fd1);
         close(fd2);
