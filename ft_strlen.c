@@ -1,41 +1,33 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex_utils.c                                      :+:      :+:    :+:   */
+/*   ft_strlen.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: skaur <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/02/09 11:46:36 by skaur             #+#    #+#             */
-/*   Updated: 2023/02/17 15:09:42 by skaur            ###   ########.fr       */
+/*   Created: 2022/10/06 12:08:53 by skaur             #+#    #+#             */
+/*   Updated: 2023/02/28 13:38:04 by skaur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
-void	ft_perror(void)
+size_t	ft_strlen(const char *s)
 {
-	perror("error : ");
-	exit(EXIT_FAILURE);
-}
+	size_t	len;
 
-void	cmd_not_found(char **cmd)
+	len = 0;
+	while (*s != '\0')
+	{
+		len++;
+		s++;
+	}		
+	return (len);
+}
+/*int main(void)
 {
-	write(2, cmd[0], ft_strlen(cmd[0]));
-	write(2, ": command not found\n", 20);
-	free_split(cmd);
-	exit(EXIT_FAILURE);
-}
-
-void	free_split(char **args)
-{
-	int	size;
-	int	i;
-
-	i = 0;
-	size = 0;
-	while (args[size])
-		size++;
-	while (i < size)
-		free(args[i++]);
-	free(args);
-}
+    char str[]="";
+    // Using %zu format specifier to print size_t
+    printf("Length of string a = %zu \n", strlen(str));
+    return 0;
+}*/
