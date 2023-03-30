@@ -12,78 +12,114 @@
 
 #include "pipex.h"
 
-int	main(int ac, char **av, char **envp)
-{
-	int	fd[2];
-	int	pipeid[2];
-	int	status;
+static void     ft_close_fd(int *fd, int *fd_pipeid);
+static int      pipex(char **av, char *const *envp, int *fd);
+static void     pipe_child1(char **av, char *const *envp, int *fd_pipeid, int *fd);
+static void     pipe_child2(char **av, char *const *envp, int *fd_pipeid, int *fd);
 
-	if (ac == 5)
-	{
-		if (pipe(fd) < 0)
-			ft_perror();
-		pipe_child1(pipeid, fd, av, envp);
-		pipe_child2(pipeid, fd, av, envp);
-		close(pipeid[0]);
-		close(pipeid[1]);
-		waitpid(-1, &status, 0);
-		waitpid(-1, &status, 0);
-	}
+int     main(int ac, char **av, char *const *envp)
+{
+        int     fd[2];
+        int     status;
+
+        if (ac == 5)
+        {
+                fd[0] = open(av[1], O_RDONLY);
+                if (fd[0] < 0)
+                        ft_perror(av[1]);
+                fd[1] = open(av[4], O_CREAT | O_RDWR | O_TRUNC, 0644);
+                if (fd[1] < 0)
+                        ft_perror(av[4]);
+                status = pipex(av, envp, fd);
+                exit(status);
+        }
+        else
+        {
+                usage();
+        }
+        return (0);
+}
+
+static int      pipex(char **av, char *const *envp, int *fd)
+{
+        pid_t   pid1;
+        pid_t   pid2;
+        int             fd_pipeid[2];
+        int             status;
+
+        status = 0;
+        if (pipe(fd_pipeid) == -1)
+                ft_perror("Pipe: ");
+        pid1 = fork();
+        if (pid1 < 0)
+                ft_perror("Fork: ");
+        if (pid1 == 0)
+                pipe_child1(av, envp, fd_pipeid, fd);
+        pid2 = fork();
+        if (pid2 < 0)
+                ft_perror("Fork: ");
+        if (pid2 == 0)
+                pipe_child2(av, envp, fd_pipeid, fd);
+        ft_close_fd(fd, fd_pipeid);
+        waitpid(pid1, NULL, 0);
+        waitpid(pid2, &status, 0);
+        return (WEXITSTATUS(status));
+}
+
+static void	pipe_child1(char **av, char *const *envp, int *fd_pipeid, int *fd)
+{
+	char	**cmd;
+	char	*path;
+	int		status;
+
+	status = 0;
+	if (dup2(fd[0], STDIN_FILENO) < 0)
+		exit(EXIT_FAILURE);
+	if (dup2(fd_pipeid[1], STDOUT_FILENO) < 0)
+		exit(EXIT_FAILURE);
+	ft_close_fd(fd, fd_pipeid);
+	cmd = ft_split(av[2], ' ');
+	path = cmd_path(cmd[0], envp);
+	if (cmd && path)
+		execve(path, cmd, envp);
 	else
-		ft_perror();
-	return (0);
+	{
+		cmd_not_found(cmd);
+	}
+	free(path);
+	free_split(cmd);
+	exit(status);
 }
 
-void	pipe_child1(int *pipeid, int *fd, char **av, char **envp)
+static void	pipe_child2(char **av, char *const *envp, int *fd_pipeid, int *fd)
 {
-	char	**cmd1;
-	int		cmd_pid;
+	char	**cmd;
+	char	*path;
+	int		status;
 
-	cmd_pid = fork();
-	if (cmd_pid < 0)
-		ft_perror();
-	if (cmd_pid == 0)
+	status = 0;
+	if (dup2(fd[1], STDOUT_FILENO) < 0)
+		exit(EXIT_FAILURE);
+	if (dup2(fd_pipeid[0], STDIN_FILENO) < 0)
+		exit(EXIT_FAILURE);
+	ft_close_fd(fd, fd_pipeid);
+	cmd = ft_split(av[3], ' ');
+	path = cmd_path(cmd[0], envp);
+	if (cmd && path)
+		execve(path, cmd, envp);
+	else
 	{
-		fd[0] = open(av[1], O_RDONLY);
-		if (fd[0] < 0)
-			ft_perror();
-		cmd1 = ft_split(av[2], ' ');
-		close(pipeid[0]);
-		dup2(fd[0], STDIN_FILENO);
-		dup2(pipeid[1], STDOUT_FILENO);
-		if (cmd1[0] && cmd_path(cmd1[0], envp))
-		{
-			execve(cmd_path(cmd1[0], envp), cmd1, envp);
-			free_split(cmd1);
-		}
-		else
-			cmd_not_found(cmd1);
+		cmd_not_found(cmd);
 	}
+	free(path);
+	free_split(cmd);
+	exit(status);
 }
 
-void	pipe_child2(int *pipeid, int *fd, char **av, char **envp)
+static void     ft_close_fd(int *fd, int *fd_pipeid)
 {
-	char	**cmd2;
-	int		cmd_pid;
-
-	cmd_pid = fork();
-	if (cmd_pid < 0)
-		ft_perror();
-	if (cmd_pid == 0)
-	{
-		fd[1] = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0644);
-		if (fd[1] < 0)
-			ft_perror();
-		cmd2 = ft_split(av[3], ' ');
-		close(pipeid[1]);
-		dup2(fd[1], STDOUT_FILENO);
-		dup2(pipeid[0], STDIN_FILENO);
-		if (cmd2[0] && cmd_path(cmd2[0], envp))
-		{
-			execve(cmd_path(cmd2[0], envp), cmd2, envp);
-			free_split(cmd2);
-		}
-		else
-			cmd_not_found(cmd2);
-	}
+        close(fd[0]);
+        close(fd[1]);
+        close(fd_pipeid[0]);
+        close(fd_pipeid[1]);
 }

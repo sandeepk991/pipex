@@ -12,7 +12,7 @@
 
 #include "pipex.h"
 
-char	**get_path(char **envp)
+char	**get_path(char *const *envp)
 {
 	char	**cmd_path;
 	int		i;
@@ -24,7 +24,7 @@ char	**get_path(char **envp)
 	return (cmd_path);
 }
 
-char	*cmd_path(char *cmd, char **envp)
+char	*cmd_path(char *cmd, char *const *envp)
 {
 	char	**envp_paths;
 	char	*exec_path;

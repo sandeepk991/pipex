@@ -20,17 +20,15 @@
 # include <fcntl.h>
 # include <errno.h>
 
+void	ft_perror(char *m);
+void	free_split(char **split);
+void	usage(void);
+void	cmd_not_found(char **cmd);
+char	*cmd_path(char *cmd, char *const *envp);
 size_t	ft_strlen(const char *s);
-char	*cmd_path(char *cmd, char **envp);
-char	**get_path(char **envp);
 char	*ft_strnstr(const char *str, const char *find, size_t len);
 char	*ft_strjoin(char const *s1, char const *s2);
 char	**ft_split(char const *s, char c);
-void	ft_perror(void);
-void	free_split(char **args);
-void	cmd_not_found(char **cmd);
-void	pipe_child1(int *pipeid, int *fd, char **av, char **envp);
-void	pipe_child2(int *pipeid, int *fd, char **av, char **envp);
 int		ft_strncmp(const char *s1, const char *s2, size_t n);
 
 #endif

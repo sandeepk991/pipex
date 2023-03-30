@@ -12,9 +12,12 @@
 
 #include "pipex.h"
 
-void	ft_perror(void)
+void	ft_perror(char *m)
 {
-	perror("error : ");
+	if (errno == 0)
+		write(2, "Error\n", 6);
+	else
+		perror(m);
 	exit(EXIT_FAILURE);
 }
 
@@ -38,4 +41,10 @@ void	free_split(char **args)
 	while (i < size)
 		free(args[i++]);
 	free(args);
+}
+
+void	usage(void)
+{
+	write(2, "usage: ./pipex [file1] [cmd1] [cmd2] [file2]\n", 45);
+	exit(1);
 }
